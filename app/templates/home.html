@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+</head>
+ <style>
+        /* Base Styles */
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --teal: #20c9c9;
+  --teal-dark: #189898;
+  --teal-light: #e6f9f9;
+  --gray-light: #f5f5f5;
+  --gray-dark: #333333;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--gray-light);
+  color: var(--black);
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(32, 201, 201, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(32, 201, 201, 0.1) 0%, transparent 20%);
+}
+
+/* Glass Container */
+.glass-container {
+  display: flex;
+  min-height: 100vh;
+  backdrop-filter: blur(16px);
+}
+
+/* Glass Sidebar */
+.glass-sidebar {
+  width: 280px;
+      height: 100vh; /* Full viewport height */
+
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+   padding: 20px;
+    overflow: hidden;
+}
+/* Scrollable area inside sidebar */
+.sidebar-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+}
+
+/* Optional: styled scrollbar */
+.sidebar-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+
+.sidebar-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.1);
+}
+
+.sidebar-header h2 {
+  color: var(--teal-dark);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.sidebar-header p {
+  color: var(--gray-dark);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Glass Main Content */
+.glass-main {
+  flex: 1;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  background-color: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.new-chat-btn:hover {
+  background-color: var(--teal-dark);
+  transform: translateY(-1px);
+}
+
+.new-chat-btn svg {
+  stroke: white;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: rgba(10, 10, 10, 0.05);
+}
+
+.icon-btn svg {
+  stroke: var(--gray-dark);
+}
+
+/* Chat History */
+.chat-history h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-dark);
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.chat-history ul {
+  list-style: none;
+}
+
+.chat-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--black);
+  transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
+}
+
+.chat-link:hover {
+  background-color: rgba(32, 201, 201, 0.1);
+}
+
+.chat-link span {
+  flex: 1;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-link small {
+  font-size: 0.75rem;
+  color: var(--gray-dark);
+  opacity: 0.7;
+}
+
+.chat-link svg {
+  stroke: var(--teal);
+}
+
+/* Chat Interface */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 4rem);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chat-header {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header h2 {
+  font-size: 1.25rem;
+  color: var(--black);
+}
+
+.chat-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Messages */
+.message {
+  max-width: 85%;
+  padding: 1rem;
+  border-radius: 12px;
+  position: relative;
+}
+
+.user-message {
+  align-self: flex-end;
+  background-color: var(--teal);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message {
+  align-self: flex-start;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-message .message-content {
+  color: white;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* SQL Blocks */
+.sql-block {
+  background-color: var(--black);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sql-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: rgba(10, 10, 10, 0.9);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.copy-sql {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-sql:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.copy-sql svg {
+  stroke: white;
+}
+.sql-block pre {
+    background-color: #f6f8fa;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;  /* Optional: wrap instead of scrolling */
+    word-break: break-word;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+pre {
+  margin: 0;
+  padding: 1rem;
+  background-color: rgba(10, 10, 10, 0.95);
+  color: var(--teal);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Results */
+.result-section {
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--teal-light);
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+  font-size: 0.9rem;
+}
+
+.result-count {
+  font-size: 0.8rem;
+  color: var(--gray-dark);
+  opacity: 0.8;
+}
+
+.result-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.result-table th {
+  background-color: rgba(10, 10, 10, 0.03);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(4px);
+}
+
+.result-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+}
+
+.result-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Charts */
+.chart-wrapper {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(10, 10, 10, 0.1);
+}
+
+/* Input */
+.chat-input-container {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(10, 10, 10, 0.05);
+}
+
+#chat-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#chat-form input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+
+#chat-form input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(32, 201, 201, 0.2);
+}
+
+#chat-form button {
+  background-color: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#chat-form button:hover {
+  background-color: var(--teal-dark);
+}
+
+#chat-form button svg {
+  stroke: white;
+}
+
+/* Welcome Section */
+.welcome-section {
+  text-align: center;
+  padding: 3rem 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--teal-dark);
+}
+
+.welcome-section p {
+  font-size: 1.1rem;
+  color: var(--gray-dark);
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.cta-primary, .cta-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.cta-primary {
+  background-color: var(--teal);
+  color: white;
+}
+
+.cta-primary:hover {
+  background-color: var(--teal-dark);
+  transform: translateY(-2px);
+}
+
+.cta-secondary {
+  background-color: transparent;
+  color: var(--teal-dark);
+  border: 1px solid var(--teal);
+}
+
+.cta-secondary:hover {
+  background-color: rgba(32, 201, 201, 0.1);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  background-color: var(--teal-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.feature-icon svg {
+  stroke: var(--teal-dark);
+}
+
+.feature-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--black);
+}
+
+.feature-card p {
+  color: var(--gray-dark);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .glass-container {
+    flex-direction: column;
+  }
+  
+  .glass-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .chat-container {
+    height: auto;
+    min-height: 70vh;
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+}
+
+.example-questions {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.example-questions h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #26e1e7ff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.scroll-box {
+    max-height: 350px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    position: relative;
+    padding-right: 8px;
+    margin-right: -8px; /* compensate padding */
+
+    /* Hide scrollbar */
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE/Edge */
+}
+
+.scroll-box::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+.example-questions ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.95rem;
+    color: #181e1fff;
+}
+
+.example-questions li {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.sidebar-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(58, 235, 212, 0.1);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: black;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.user-profile:hover {
+    color: black;
+}
+
+.user-profile svg {
+    stroke: currentColor;
+}
+
+
+
+
+
+    </style>
+<body>
+    <div class="glass-container">
+        <!-- Sidebar -->
+        <div class="glass-sidebar">
+            <div class="sidebar-header">
+<h2>E-commerce AI Assistant</h2>
+                <p>Natural language to SQL</p>
+            </div>
+        
+            <div class="sidebar-scroll">
+
+            <a href="/chat/new" class="new-chat-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New Chat
+            </a>
+            
+            <div class="chat-history">
+                <h3>Recent Chats</h3>
+                <ul>
+                    {% for session_id, metadata in chats %}
+                    <li>
+                        <a href="/chat/{{ session_id }}" class="chat-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>{{ metadata.title }}</span>
+                            <small>{{ metadata.created_at }}</small>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="example-questions">
+    <h3>Example Questions</h3>
+                <div class="scroll-box">
+
+    <ul>
+     <li onclick="fillInput('What is my total sales?')">What is my total sales?</li>
+    <li onclick="fillInput('Calculate the RoAS (Return on Ad Spend).')">Calculate the RoAS (Return on Ad Spend).</li>
+    <li onclick="fillInput('Which product had the highest CPC (Cost Per Click)?')">Which product had the highest CPC (Cost Per Click)?</li>
+    <li onclick="fillInput('What are the total sales this month?')">What are the total sales this month?</li>
+    <li onclick="fillInput('Show total sales by product category.')">Show total sales by product category.</li>
+    <li onclick="fillInput('What is the average order value per customer?')">What is the average order value per customer?</li>
+    <li onclick="fillInput('List the top 5 selling products.')">List the top 5 selling products.</li>
+    <li onclick="fillInput('Which products had zero sales last week?')">Which products had zero sales last week?</li>
+    <li onclick="fillInput('How many unique customers purchased in the last 30 days?')">How many unique customers purchased in the last 30 days?</li>
+    <li onclick="fillInput('Which customers spent more than 10,000 in total?')">Which customers spent more than 10,000 in total?</li>
+    <li onclick="fillInput('What is the repeat purchase rate?')">What is the repeat purchase rate?</li>
+    <li onclick="fillInput('Show customer count by region.')">Show customer count by region.</li>
+    <li onclick="fillInput('Who are the top 3 loyal customers?')">Who are the top 3 loyal customers?</li>
+    <li onclick="fillInput('What products are low in stock?')">What products are low in stock?</li>
+    <li onclick="fillInput('Which products have not been sold in the last 60 days?')">Which products have not been sold in the last 60 days?</li>
+    <li onclick="fillInput('Show total revenue generated by each product.')">Show total revenue generated by each product.</li>
+    <li onclick="fillInput('Which category has the highest revenue?')">Which category has the highest revenue?</li>
+    <li onclick="fillInput('What is the average selling price of items?')">What is the average selling price of items?</li>
+    <li onclick="fillInput('Show monthly sales trend for this year.')">Show monthly sales trend for this year.</li>
+    <li onclick="fillInput('Compare daily sales for the last 7 days.')">Compare daily sales for the last 7 days.</li>
+    <li onclick="fillInput('What was the peak sales day last month?')">What was the peak sales day last month?</li>
+    <li onclick="fillInput('How many orders were placed during weekends?')">How many orders were placed during weekends?</li>
+    <li onclick="fillInput('Show sales grouped by weekday.')">Show sales grouped by weekday.</li>
+    <li onclick="fillInput('Which items have the highest return rate?')">Which items have the highest return rate?</li>
+    <li onclick="fillInput('Show abandoned carts in the last 14 days.')">Show abandoned carts in the last 14 days.</li>
+    <li onclick="fillInput('What is the conversion rate by campaign?')">What is the conversion rate by campaign?</li>
+    <li onclick="fillInput('Compare new vs returning customers this quarter.')">Compare new vs returning customers this quarter.</li>
+    <li onclick="fillInput('Show total discounts applied last month.')">Show total discounts applied last month.</li>
+    <li onclick="fillInput('What are the top traffic sources by revenue?')">What are the top traffic sources by revenue?</li>
+    <li onclick="fillInput('What is the average shipping time per region?')">What is the average shipping time per region?</li>
+    <li onclick="fillInput('Which products are most frequently bundled?')">Which products are most frequently bundled?</li>
+    <li onclick="fillInput('Show sales funnel drop-off rates.')">Show sales funnel drop-off rates.</li>
+    <li onclick="fillInput('How many orders were refunded this year?')">How many orders were refunded this year?</li>
+</ul>
+
+</div>
+</div>
+</div>
+            
+              <div class="sidebar-footer">
+                <a href="#" class="user-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Account</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="glass-main">
+            {% if current_session %}
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2>{{ chat_title }}</h2>
+                        <div class="chat-actions">
+                            <button id="clear-chat" class="icon-btn" title="Clear Chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                            <button id="export-chat" class="icon-btn" title="Export Chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-messages" id="chat-messages">
+                        {% for message in history %}
+                        <div class="message user-message">
+                            <div class="message-content">
+                                <div class="user-question">{{ message.question | e }}</div>
+                                <div class="message-time">{{ message.time }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if message.sql or message.explanation or message.result %}
+                        <div class="message ai-message">
+                            <div class="message-content">
+                                {% if message.sql %}
+                                <div class="sql-block">
+                                    <div class="sql-header">
+                                        <span>Generated SQL</span>
+                                        <button class="copy-sql" data-sql="{{ message.sql | e }}">Copy</button>
+                                    </div>
+                                    <pre><code>{{ message.sql }}</code></pre>
+                                </div>
+                                {% endif %}
+                                
+                                {% if message.chart_data %}
+                                <div class="chart-wrapper">
+                                    <canvas id="chart-{{ loop.index }}"></canvas>
+                                </div>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const ctx = document.getElementById('chart-{{ loop.index }}');
+                                        if (ctx) {
+                                            new Chart(ctx, {
+                                                type: '{{ message.chart_type }}',
+                                                data: {
+                                                    labels: {{ message.chart_data.labels | tojson }},
+                                                    datasets: [{
+                                                        label: '{{ message.chart_data.label }}',
+                                                        data: {{ message.chart_data.values | tojson }},
+                                                        backgroundColor: ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f']
+                                                    }]
+                                                },
+                                                options: {
+                                                    responsive: true,
+                                                    plugins: {
+                                                        legend: {
+                                                            display: {{ 'false' if message.chart_type == 'bar' else 'true' }}
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                </script>
+                                {% endif %}
+                                
+                                {% if message.explanation %}
+                                <div class="explanation">
+                                    <strong>Explanation:</strong> {{ message.explanation | e }}
+                                </div>
+                                {% endif %}
+                                
+                                {% if message.result and message.result[0] is mapping %}
+                                <div class="result-section">
+                                    <div class="result-header">
+                                        <span>Query Results</span>
+                                        <span class="result-count">{{ message.result|length }} rows</span>
+                                    </div>
+                                    <div class="result-table-container">
+                                        <table class="result-table">
+                                            <thead>
+                                                <tr>
+                                                    {% for key in message.result[0].keys() %}
+                                                    <th>{{ key }}</th>
+                                                    {% endfor %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for row in message.result %}
+                                                <tr>
+                                                    {% for value in row.values() %}
+                                                    <td>{{ value }}</td>
+                                                    {% endfor %}
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% elif message.result %}
+                                <div class="error-result">
+                                    <strong>Error:</strong> {{ message.result[0] if message.result else "Unknown error" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <form id="chat-form" action="/chat/{{ current_session }}/ask" method="post">
+                            <input type="text" id="user-question" name="question" placeholder="Ask a question about your data..." required>
+                            <button type="submit">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Welcome content when no chat is active -->
+                <div class="welcome-section">
+                    <h1>Welcome to SQL AI Assistant</h1>
+                    <p>Transform your natural language questions into SQL queries instantly</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="/chat/new" class="cta-primary">Start New Chat</a>
+                        <a href="#" class="cta-secondary">Learn How It Works</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle form submission with AJAX
+            const form = document.getElementById('chat-form');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const question = document.getElementById('user-question').value.trim();
+                    if (!question) return;
+                    
+                    const sessionId = "{{ current_session }}";
+                    const chatMessages = document.getElementById('chat-messages');
+                    
+                    // Add user message
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'message user-message';
+                    userMessage.innerHTML = `
+                        <div class="message-content">
+                            <div class="user-question">${question}</div>
+                            <div class="message-time">now</div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(userMessage);
+                    // Clear input immediately after submission
+        document.getElementById('user-question').value = '';
+        document.getElementById('user-question').focus(); // Optional: keep focus on input
+                    
+                    // Add AI placeholder
+                    const aiPlaceholder = document.createElement('div');
+                    aiPlaceholder.className = 'message ai-message';
+                    aiPlaceholder.innerHTML = `
+                        <div class="message-content">
+                            <div class="sql-block">
+                                <div class="sql-header"><span>Generated SQL</span></div>
+                                <pre><code>Thinking...</code></pre>
+                            </div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(aiPlaceholder);
+                    
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    try {
+                        // Send request to JSON endpoint
+                        const response = await fetch(`/chat/${sessionId}/ask_json`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ question })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        // Update AI message with response
+                        aiPlaceholder.innerHTML = `
+                            <div class="message-content">
+                                ${data.sql ? `
+                                <div class="sql-block">
+                                    <div class="sql-header">
+                                        <span>Generated SQL</span>
+                                        <button class="copy-sql" data-sql="${data.sql}">Copy</button>
+                                    </div>
+                                    <pre><code>${data.sql}</code></pre>
+                                </div>
+                                ` : ''}
+                                
+                                ${data.explanation ? `
+                                <div class="explanation">
+                                    <strong>Explanation:</strong> ${data.explanation}
+                                </div>
+                                ` : ''}
+                                
+                                ${data.result && data.result.length && typeof data.result[0] === 'object' ? `
+                                <div class="result-section">
+                                    <div class="result-header">
+                                        <span>Query Results</span>
+                                        <span class="result-count">${data.result.length} rows</span>
+                                    </div>
+                                    <div class="result-table-container">
+                                        <table class="result-table">
+                                            <thead>
+                                                <tr>
+                                                    ${Object.keys(data.result[0]).map(key => `<th>${key}</th>`).join('')}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${data.result.map(row => `
+                                                <tr>
+                                                    ${Object.values(row).map(val => `<td>${val}</td>`).join('')}
+                                                </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        `;
+                        
+                        // Add chart if available
+                        if (data.chart_data) {
+                            const chartDiv = document.createElement('div');
+                            chartDiv.className = 'chart-wrapper';
+                            chartDiv.innerHTML = `<canvas id="chart-${Date.now()}"></canvas>`;
+                            aiPlaceholder.querySelector('.message-content').appendChild(chartDiv);
+                            
+                            // Initialize chart
+                            const ctx = chartDiv.querySelector('canvas');
+                            new Chart(ctx, {
+                                type: data.chart_type,
+                                data: {
+                                    labels: data.chart_data.labels,
+                                    datasets: [{
+                                        label: data.chart_data.label,
+                                        data: data.chart_data.values,
+                                        backgroundColor: ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f']
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            display: data.chart_type !== 'bar'
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        
+                        // Scroll to bottom again
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } catch (error) {
+                        aiPlaceholder.querySelector('code').textContent = 'Error getting response';
+                    }
+                    
+                    // Reset form
+                    form.reset();
+                });
+            }
+            
+            // Copy SQL button
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('copy-sql')) {
+                    const sql = e.target.getAttribute('data-sql');
+                    navigator.clipboard.writeText(sql).then(() => {
+                        const original = e.target.textContent;
+                        e.target.textContent = 'Copied!';
+                        setTimeout(() => {
+                            e.target.textContent = original;
+                        }, 2000);
+                    });
+                }
+            });
+            
+            // Clear chat button
+            const clearChatBtn = document.getElementById('clear-chat');
+            if (clearChatBtn) {
+                clearChatBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to clear this chat?')) {
+                        const sessionId = window.location.pathname.split('/')[2];
+                        await fetch(`/chat/${sessionId}/clear`, {
+                            method: 'POST'
+                        });
+                        window.location.reload();
+                    }
+                });
+            }
+            
+            // Export chat button
+            const exportChatBtn = document.getElementById('export-chat');
+            if (exportChatBtn) {
+                exportChatBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sessionId = window.location.pathname.split('/')[2];
+                    window.location.href = `/chat/${sessionId}/export`;
+                });
+            }
+        });
+        
+        function fillInput(text) {
+            const input = document.getElementById("user-question");
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+    </script>
+</body>
+</html>

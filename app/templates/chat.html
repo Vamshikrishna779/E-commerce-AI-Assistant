@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL AI Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+</head>
+ <style>
+        /* Base Styles */
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --teal: #20c9c9;
+  --teal-dark: #189898;
+  --teal-light: #e6f9f9;
+  --gray-light: #f5f5f5;
+  --gray-dark: #333333;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--gray-light);
+  color: var(--black);
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(32, 201, 201, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(32, 201, 201, 0.1) 0%, transparent 20%);
+}
+
+/* Glass Container */
+.glass-container {
+  display: flex;
+  min-height: 100vh;
+  backdrop-filter: blur(16px);
+}
+
+/* Glass Sidebar */
+.glass-sidebar {
+  width: 280px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.1);
+}
+
+.sidebar-header h2 {
+  color: var(--teal-dark);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.sidebar-header p {
+  color: var(--gray-dark);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Glass Main Content */
+.glass-main {
+  flex: 1;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  background-color: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.new-chat-btn:hover {
+  background-color: var(--teal-dark);
+  transform: translateY(-1px);
+}
+
+.new-chat-btn svg {
+  stroke: white;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: rgba(10, 10, 10, 0.05);
+}
+
+.icon-btn svg {
+  stroke: var(--gray-dark);
+}
+
+/* Chat History */
+.chat-history h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-dark);
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.chat-history ul {
+  list-style: none;
+}
+
+.chat-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--black);
+  transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
+}
+
+.chat-link:hover {
+  background-color: rgba(32, 201, 201, 0.1);
+}
+
+.chat-link span {
+  flex: 1;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-link small {
+  font-size: 0.75rem;
+  color: var(--gray-dark);
+  opacity: 0.7;
+}
+
+.chat-link svg {
+  stroke: var(--teal);
+}
+
+/* Chat Interface */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 4rem);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chat-header {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header h2 {
+  font-size: 1.25rem;
+  color: var(--black);
+}
+
+.chat-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Messages */
+.message {
+  max-width: 85%;
+  padding: 1rem;
+  border-radius: 12px;
+  position: relative;
+}
+
+.user-message {
+  align-self: flex-end;
+  background-color: var(--teal);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message {
+  align-self: flex-start;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-message .message-content {
+  color: white;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* SQL Blocks */
+.sql-block {
+  background-color: var(--black);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sql-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: rgba(10, 10, 10, 0.9);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.copy-sql {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-sql:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.copy-sql svg {
+  stroke: white;
+}
+.sql-block pre {
+    background-color: #f6f8fa;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;  /* Optional: wrap instead of scrolling */
+    word-break: break-word;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+pre {
+  margin: 0;
+  padding: 1rem;
+  background-color: rgba(10, 10, 10, 0.95);
+  color: var(--teal);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Results */
+.result-section {
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--teal-light);
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+  font-size: 0.9rem;
+}
+
+.result-count {
+  font-size: 0.8rem;
+  color: var(--gray-dark);
+  opacity: 0.8;
+}
+
+.result-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.result-table th {
+  background-color: rgba(10, 10, 10, 0.03);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(4px);
+}
+
+.result-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+}
+
+.result-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Charts */
+.chart-wrapper {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(10, 10, 10, 0.1);
+}
+
+/* Input */
+.chat-input-container {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(10, 10, 10, 0.05);
+}
+
+#chat-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#chat-form input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+
+#chat-form input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(32, 201, 201, 0.2);
+}
+
+#chat-form button {
+  background-color: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#chat-form button:hover {
+  background-color: var(--teal-dark);
+}
+
+#chat-form button svg {
+  stroke: white;
+}
+
+/* Welcome Section */
+.welcome-section {
+  text-align: center;
+  padding: 3rem 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--teal-dark);
+}
+
+.welcome-section p {
+  font-size: 1.1rem;
+  color: var(--gray-dark);
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.cta-primary, .cta-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.cta-primary {
+  background-color: var(--teal);
+  color: white;
+}
+
+.cta-primary:hover {
+  background-color: var(--teal-dark);
+  transform: translateY(-2px);
+}
+
+.cta-secondary {
+  background-color: transparent;
+  color: var(--teal-dark);
+  border: 1px solid var(--teal);
+}
+
+.cta-secondary:hover {
+  background-color: rgba(32, 201, 201, 0.1);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  background-color: var(--teal-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.feature-icon svg {
+  stroke: var(--teal-dark);
+}
+
+.feature-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--black);
+}
+
+.feature-card p {
+  color: var(--gray-dark);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .glass-container {
+    flex-direction: column;
+  }
+  
+  .glass-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .chat-container {
+    height: auto;
+    min-height: 70vh;
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+}
+    </style>
+<body>
+    <div class="glass-container">
+        <!-- Sidebar -->
+        <div class="glass-sidebar">
+            <div class="sidebar-header">
+                <h2>SQL AI</h2>
+                <p>Natural language to SQL</p>
+            </div>
+            
+            <a href="/chat/new" class="new-chat-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New Chat
+            </a>
+            
+            <div class="chat-history">
+                <h3>Recent Chats</h3>
+                <ul>
+                    {% for session_id, metadata in chats %}
+                    <li>
+                        <a href="/chat/{{ session_id }}" class="chat-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>{{ metadata.title }}</span>
+                            <small>{{ metadata.created_at }}</small>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="user-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Account</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="glass-main">
+            {% if current_session %}
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2>{{ chat_title }}</h2>
+                        <div class="chat-actions">
+                            <button id="clear-chat" class="icon-btn" title="Clear Chat" aria-label="Clear chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                            <button id="export-chat" class="icon-btn" title="Export Chat" aria-label="Export chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+   
+                    
+                    <div class="chat-messages" id="chat-messages">
+                        {% for message in history %}
+                        <!-- Always show the user question -->
+<div class="message user-message">
+    <div class="message-content">
+        <div class="user-question">{{ message.question | e }}</div>
+        <div class="message-time">{{ message.time }}</div>
+    </div>
+</div>
+
+<!-- Then show AI response if present -->
+{% if message.sql or message.explanation or message.result %}
+<div class="message ai-message">
+    <div class="message-content">
+        {% if message.sql %}
+        <div class="sql-block">
+            <div class="sql-header">
+                <span>Generated SQL</span>
+                <button class="copy-sql" data-sql="{{ message.sql | e }}">Copy</button>
+            </div>
+            <pre><code id="sql-code-{{ loop.index }}"></code></pre>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const sqlText{{ loop.index }} = {{ message.sql | tojson }};
+                    const target = document.getElementById("sql-code-{{ loop.index }}");
+                    if (target) {
+                        let i = 0;
+                        function typeWriter() {
+                            if (i < sqlText{{ loop.index }}.length) {
+                                target.textContent += sqlText{{ loop.index }}[i];
+                                i++;
+                                setTimeout(typeWriter, 20);
+                            }
+                        }
+                        typeWriter();
+                    }
+                });
+            </script>
+        </div>
+        {% endif %}
+
+        {% if message.chart_data %}
+        <div class="chart-wrapper">
+            <canvas id="chart-{{ loop.index }}"></canvas>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('chart-{{ loop.index }}');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: '{{ message.chart_type }}',
+                        data: {
+labels: {{ message.chart_data['labels'] | tojson }},
+label: '{{ message.chart_data['label'] }}',
+                            datasets: [{
+                                label: '{{ message.chart_data.label }}',
+data: {{ message.chart_data['values'] | tojson }},
+                                backgroundColor: ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: {{ 'false' if message.chart_type == 'bar' else 'true' }}
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+        {% endif %}
+
+        {% if message.explanation %}
+        <div class="explanation">
+            <strong>Explanation:</strong> {{ message.explanation | e }}
+        </div>
+        {% endif %}
+
+        {% if message.result and message.result[0] is mapping %}
+        <div class="result-section">
+            <div class="result-header">
+                <span>Query Results</span>
+                <span class="result-count">{{ message.result|length }} rows</span>
+            </div>
+            <div class="result-table-container">
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            {% for key in message.result[0].keys() %}
+                            <th>{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in message.result %}
+                        <tr>
+                            {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% elif message.result %}
+        <div class="error-result">
+            <strong>Error:</strong> {{ message.result[0] if message.result else "Unknown error" }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+
+                                            
+                          
+                        {% endfor %}
+                    </div>
+                    <div class="chat-input-container">
+                        <form id="chat-form" action="/chat/{{ current_session }}/ask" method="post">
+                            <label for="user-question" class="sr-only">Ask a question</label>
+                            <input type="text" id="user-question" name="question" placeholder="Ask a question about your data..." required>
+                            <button type="submit" aria-label="Send message">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="welcome-section">
+                    <h1>Welcome to SQL AI Assistant</h1>
+                    <p>Transform your natural language questions into SQL queries instantly</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="/chat/new" class="cta-primary">Start New Chat</a>
+                        <a href="#" class="cta-secondary">Learn How It Works</a>
+                    </div>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="4 17 10 11 4 5"></polyline>
+                                <line x1="12" y1="19" x2="20" y2="19"></line>
+                            </svg>
+                        </div>
+                        <h3>Natural Language Processing</h3>
+                        <p>Ask questions in plain English and get accurate SQL queries in return.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 2v4"></path>
+                                <path d="m16.24 7.76 2.83-2.83"></path>
+                                <path d="M18 12h4"></path>
+                                <path d="m16.24 16.24 2.83 2.83"></path>
+                                <path d="M12 18v4"></path>
+                                <path d="m4.93 19.07 2.83-2.83"></path>
+                                <path d="M2 12h4"></path>
+                                <path d="m4.93 4.93 2.83 2.83"></path>
+                            </svg>
+                        </div>
+                        <h3>Smart Suggestions</h3>
+                        <p>Get intelligent query suggestions based on your database schema.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </div>
+                        <h3>Query History</h3>
+                        <p>All your previous queries are saved for future reference.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scroll to bottom of chat
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Copy SQL button functionality
+            document.querySelectorAll('.copy-sql').forEach(button => {
+                button.addEventListener('click', function() {
+                    const sql = this.getAttribute('data-sql');
+                    navigator.clipboard.writeText(sql).then(() => {
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                        }, 2000);
+                    });
+                });
+            });
+
+            // Clear chat button
+            const clearChatBtn = document.getElementById('clear-chat');
+            if (clearChatBtn) {
+                clearChatBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to clear this chat?')) {
+                        const sessionId = window.location.pathname.split('/')[2];
+                        await fetch(`/chat/${sessionId}/clear`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        window.location.reload();
+                    }
+                });
+            }
+
+            // Export chat button
+            const exportChatBtn = document.getElementById('export-chat');
+            if (exportChatBtn) {
+                exportChatBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const sessionId = window.location.pathname.split('/')[2];
+                    window.location.href = `/chat/${sessionId}/export`;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL AI Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+</head>
+ <style>
+        /* Base Styles */
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --teal: #20c9c9;
+  --teal-dark: #189898;
+  --teal-light: #e6f9f9;
+  --gray-light: #f5f5f5;
+  --gray-dark: #333333;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--gray-light);
+  color: var(--black);
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(32, 201, 201, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(32, 201, 201, 0.1) 0%, transparent 20%);
+}
+
+/* Glass Container */
+.glass-container {
+  display: flex;
+  min-height: 100vh;
+  backdrop-filter: blur(16px);
+}
+
+/* Glass Sidebar */
+.glass-sidebar {
+  width: 280px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.1);
+}
+
+.sidebar-header h2 {
+  color: var(--teal-dark);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.sidebar-header p {
+  color: var(--gray-dark);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Glass Main Content */
+.glass-main {
+  flex: 1;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  background-color: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.new-chat-btn:hover {
+  background-color: var(--teal-dark);
+  transform: translateY(-1px);
+}
+
+.new-chat-btn svg {
+  stroke: white;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: rgba(10, 10, 10, 0.05);
+}
+
+.icon-btn svg {
+  stroke: var(--gray-dark);
+}
+
+/* Chat History */
+.chat-history h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-dark);
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.chat-history ul {
+  list-style: none;
+}
+
+.chat-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--black);
+  transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
+}
+
+.chat-link:hover {
+  background-color: rgba(32, 201, 201, 0.1);
+}
+
+.chat-link span {
+  flex: 1;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-link small {
+  font-size: 0.75rem;
+  color: var(--gray-dark);
+  opacity: 0.7;
+}
+
+.chat-link svg {
+  stroke: var(--teal);
+}
+
+/* Chat Interface */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 4rem);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chat-header {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header h2 {
+  font-size: 1.25rem;
+  color: var(--black);
+}
+
+.chat-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Messages */
+.message {
+  max-width: 85%;
+  padding: 1rem;
+  border-radius: 12px;
+  position: relative;
+}
+
+.user-message {
+  align-self: flex-end;
+  background-color: var(--teal);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message {
+  align-self: flex-start;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-message .message-content {
+  color: white;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* SQL Blocks */
+.sql-block {
+  background-color: var(--black);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sql-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: rgba(10, 10, 10, 0.9);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.copy-sql {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-sql:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.copy-sql svg {
+  stroke: white;
+}
+.sql-block pre {
+    background-color: #f6f8fa;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;  /* Optional: wrap instead of scrolling */
+    word-break: break-word;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+pre {
+  margin: 0;
+  padding: 1rem;
+  background-color: rgba(10, 10, 10, 0.95);
+  color: var(--teal);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Results */
+.result-section {
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--teal-light);
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+  font-size: 0.9rem;
+}
+
+.result-count {
+  font-size: 0.8rem;
+  color: var(--gray-dark);
+  opacity: 0.8;
+}
+
+.result-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.result-table th {
+  background-color: rgba(10, 10, 10, 0.03);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(4px);
+}
+
+.result-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+}
+
+.result-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Charts */
+.chart-wrapper {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.chart-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+
+/* Input */
+.chat-input-container {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(10, 10, 10, 0.05);
+}
+
+#chat-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#chat-form input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+
+#chat-form input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(32, 201, 201, 0.2);
+}
+
+#chat-form button {
+  background-color: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#chat-form button:hover {
+  background-color: var(--teal-dark);
+}
+
+#chat-form button svg {
+  stroke: white;
+}
+
+/* Welcome Section */
+.welcome-section {
+  text-align: center;
+  padding: 3rem 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--teal-dark);
+}
+
+.welcome-section p {
+  font-size: 1.1rem;
+  color: var(--gray-dark);
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.cta-primary, .cta-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.cta-primary {
+  background-color: var(--teal);
+  color: white;
+}
+
+.cta-primary:hover {
+  background-color: var(--teal-dark);
+  transform: translateY(-2px);
+}
+
+.cta-secondary {
+  background-color: transparent;
+  color: var(--teal-dark);
+  border: 1px solid var(--teal);
+}
+
+.cta-secondary:hover {
+  background-color: rgba(32, 201, 201, 0.1);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  background-color: var(--teal-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.feature-icon svg {
+  stroke: var(--teal-dark);
+}
+
+.feature-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--black);
+}
+
+.feature-card p {
+  color: var(--gray-dark);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .glass-container {
+    flex-direction: column;
+  }
+  
+  .glass-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .chat-container {
+    height: auto;
+    min-height: 70vh;
+  }
+  
+  .message {
+    max-width: 90%;
+  }
+}
+    </style>
+<body>
+    <div class="glass-container">
+        <!-- Sidebar -->
+        <div class="glass-sidebar">
+            <div class="sidebar-header">
+                <h2>SQL AI</h2>
+                <p>Natural language to SQL</p>
+            </div>
+            
+            <a href="/chat/new" class="new-chat-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New Chat
+            </a>
+            
+            <div class="chat-history">
+                <h3>Recent Chats</h3>
+                <ul>
+                    {% for session_id, metadata in chats %}
+                    <li>
+                        <a href="/chat/{{ session_id }}" class="chat-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>{{ metadata.title }}</span>
+                            <small>{{ metadata.created_at }}</small>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="user-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Account</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="glass-main">
+            {% if current_session %}
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2>{{ chat_title }}</h2>
+                        <div class="chat-actions">
+                            <button id="clear-chat" class="icon-btn" title="Clear Chat" aria-label="Clear chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                            <button id="export-chat" class="icon-btn" title="Export Chat" aria-label="Export chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+   
+                    
+                   <!-- Previous HTML remains the same until the chat messages section -->
+<div class="chat-messages" id="chat-messages">
+    {% for message in history %}
+    <!-- User message -->
+    <div class="message user-message">
+        <div class="message-content">
+            <div class="user-question">{{ message.question | e }}</div>
+            <div class="message-time">{{ message.time }}</div>
+        </div>
+    </div>
+
+    <!-- AI response if present -->
+    {% if message.sql or message.explanation or message.result %}
+    <div class="message ai-message">
+        <div class="message-content">
+            {% if message.sql %}
+            <div class="sql-block">
+                <div class="sql-header">
+                    <span>Generated SQL</span>
+                    <button class="copy-sql" data-sql="{{ message.sql | e }}">Copy</button>
+                </div>
+                <pre><code id="sql-code-{{ loop.index }}"></code></pre>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const sqlText{{ loop.index }} = {{ message.sql | tojson }};
+                        const target = document.getElementById("sql-code-{{ loop.index }}");
+                        if (target) {
+                            let i = 0;
+                            function typeWriter() {
+                                if (i < sqlText{{ loop.index }}.length) {
+                                    target.textContent += sqlText{{ loop.index }}[i];
+                                    i++;
+                                    setTimeout(typeWriter, 20);
+                                }
+                            }
+                            typeWriter();
+                        }
+                    });
+                </script>
+            </div>
+            {% endif %}
+
+            {% if message.explanation %}
+            <div class="explanation">
+                <strong>Explanation:</strong> {{ message.explanation | e }}
+            </div>
+            {% endif %}
+
+            {% if message.chart_image_path %}
+            <div class="chart-wrapper">
+                <img src="{{ message.chart_image_path }}" alt="Chart" class="img-fluid rounded shadow">
+            </div>
+            {% endif %}
+
+            {% if message.result and message.result[0] is mapping %}
+            <div class="result-section">
+                <div class="result-header">
+                    <span>Query Results</span>
+                    <span class="result-count">{{ message.result|length }} rows</span>
+                </div>
+                <div class="result-table-container">
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                {% for key in message.result[0].keys() %}
+                                <th>{{ key }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in message.result %}
+                            <tr>
+                                {% for value in row.values() %}
+                                <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% elif message.result %}
+            <div class="error-result">
+                <strong>Error:</strong> {{ message.result[0] if message.result else "Unknown error" }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+<!-- Rest of the HTML remains the same -->
+                    <div class="chat-input-container">
+                        <form id="chat-form" action="/chat/{{ current_session }}/ask" method="post">
+                            <label for="user-question" class="sr-only">Ask a question</label>
+                            <input type="text" id="user-question" name="question" placeholder="Ask a question about your data..." required>
+                             <!-- Chart type selection -->
+                            <select name="chart_type" class="form-select" style="width: auto; margin-right: 10px;">
+        <option value="bar" selected>Bar</option>
+        <option value="pie">Pie</option>
+        <option value="line">Line</option>
+    </select>
+                            <button type="submit" aria-label="Send message">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="welcome-section">
+                    <h1>Welcome to SQL AI Assistant</h1>
+                    <p>Transform your natural language questions into SQL queries instantly</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="/chat/new" class="cta-primary">Start New Chat</a>
+                        <a href="#" class="cta-secondary">Learn How It Works</a>
+                    </div>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="4 17 10 11 4 5"></polyline>
+                                <line x1="12" y1="19" x2="20" y2="19"></line>
+                            </svg>
+                        </div>
+                        <h3>Natural Language Processing</h3>
+                        <p>Ask questions in plain English and get accurate SQL queries in return.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 2v4"></path>
+                                <path d="m16.24 7.76 2.83-2.83"></path>
+                                <path d="M18 12h4"></path>
+                                <path d="m16.24 16.24 2.83 2.83"></path>
+                                <path d="M12 18v4"></path>
+                                <path d="m4.93 19.07 2.83-2.83"></path>
+                                <path d="M2 12h4"></path>
+                                <path d="m4.93 4.93 2.83 2.83"></path>
+                            </svg>
+                        </div>
+                        <h3>Smart Suggestions</h3>
+                        <p>Get intelligent query suggestions based on your database schema.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </div>
+                        <h3>Query History</h3>
+                        <p>All your previous queries are saved for future reference.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scroll to bottom of chat
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Copy SQL button functionality
+            document.querySelectorAll('.copy-sql').forEach(button => {
+                button.addEventListener('click', function() {
+                    const sql = this.getAttribute('data-sql');
+                    navigator.clipboard.writeText(sql).then(() => {
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                        }, 2000);
+                    });
+                });
+            });
+
+            // Clear chat button
+            const clearChatBtn = document.getElementById('clear-chat');
+            if (clearChatBtn) {
+                clearChatBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to clear this chat?')) {
+                        const sessionId = window.location.pathname.split('/')[2];
+                        await fetch(`/chat/${sessionId}/clear`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        window.location.reload();
+                    }
+                });
+            }
+
+            // Export chat button
+            const exportChatBtn = document.getElementById('export-chat');
+            if (exportChatBtn) {
+                exportChatBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+const sessionId = window.location.pathname.match(/\/chat\/([^/]+)/)?.[1];
+if (sessionId) {
+    window.location.href = `/chat/${sessionId}/export`;
+}
+
+                });
+            }
+        });
+    </script>
+</body>
+</html>
