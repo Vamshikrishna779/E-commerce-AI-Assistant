@@ -27,7 +27,7 @@ A FastAPI-based web application that converts natural language queries into SQL 
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/ecommerce-sql-assistant.git
+git clone https://github.com/your-username/e-commerce-ail-assistant.git
 cd ecommerce-ai-assistant
 ````
 
