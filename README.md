@@ -109,6 +109,3 @@ Visit: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 This project is licensed under the MIT License.
 
 ```
-
-Let me know if you want this written into a `README.md` file and served by your FastAPI app.
-```
