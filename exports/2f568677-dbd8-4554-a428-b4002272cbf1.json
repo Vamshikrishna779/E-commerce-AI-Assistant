@@ -1,0 +1,108 @@
+{
+  "metadata": {
+    "title": "Sales trend over last 6 months",
+    "created_at": "2025-07-23 14:17"
+  },
+  "messages": [
+    {
+      "question": "Sales trend over last 6 months",
+      "sql": "SELECT ts.date, SUM(ts.total_sales) AS total_sales FROM total_sales ts WHERE ts.date >= (strftime('%Y-%m-%d', date('now', '-6 months'))) GROUP BY ts.date ORDER BY ts.date;",
+      "explanation": "This query calculates the total sales for each date in the last 6 months. It uses `strftime` to extract the date 6 months ago and then filters the `total_sales` table to include only those dates. The result is ordered by date.",
+      "result": [
+        {
+          "date": "2025-06-01",
+          "total_sales": 79566.48
+        },
+        {
+          "date": "2025-06-02",
+          "total_sales": 81086.63999999998
+        },
+        {
+          "date": "2025-06-03",
+          "total_sales": 59302.68999999999
+        },
+        {
+          "date": "2025-06-04",
+          "total_sales": 54647.649999999994
+        },
+        {
+          "date": "2025-06-05",
+          "total_sales": 58916.989999999976
+        },
+        {
+          "date": "2025-06-06",
+          "total_sales": 60336.189999999995
+        },
+        {
+          "date": "2025-06-07",
+          "total_sales": 51951.13999999999
+        },
+        {
+          "date": "2025-06-08",
+          "total_sales": 53445.840000000004
+        },
+        {
+          "date": "2025-06-09",
+          "total_sales": 55919.429999999986
+        },
+        {
+          "date": "2025-06-10",
+          "total_sales": 54342.96000000001
+        },
+        {
+          "date": "2025-06-11",
+          "total_sales": 51429.479999999996
+        },
+        {
+          "date": "2025-06-12",
+          "total_sales": 79594.70999999999
+        },
+        {
+          "date": "2025-06-13",
+          "total_sales": 154927.0800000001
+        },
+        {
+          "date": "2025-06-14",
+          "total_sales": 109437.27999999998
+        }
+      ],
+      "time": "14:16",
+      "chart_data": {
+        "labels": [
+          "2025-06-01",
+          "2025-06-02",
+          "2025-06-03",
+          "2025-06-04",
+          "2025-06-05",
+          "2025-06-06",
+          "2025-06-07",
+          "2025-06-08",
+          "2025-06-09",
+          "2025-06-10",
+          "2025-06-11",
+          "2025-06-12",
+          "2025-06-13",
+          "2025-06-14"
+        ],
+        "values": [
+          79566.48,
+          81086.63999999998,
+          59302.68999999999,
+          54647.649999999994,
+          58916.989999999976,
+          60336.189999999995,
+          51951.13999999999,
+          53445.840000000004,
+          55919.429999999986,
+          54342.96000000001,
+          51429.479999999996,
+          79594.70999999999,
+          154927.0800000001,
+          109437.27999999998
+        ],
+        "label": "total_sales"
+      },
+      "chart_type": "bar"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "question": "what are total sales",
+    "sql": "SELECT SUM(total_sales) FROM total_sales;",
+    "explanation": "This query calculates the sum of all values in the 'total_sales' column of the 'total_sales' table, providing the total sales across all entries.",
+    "result": [
+      {
+        "SUM(total_sales)": 1004904.5599999991
+      }
+    ],
+    "time": "2025-07-22 20:18:05",
+    "chart_data": null,
+    "chart_type": "bar"
+  },
+  {
+    "question": "what are total sales",
+    "sql": "SELECT SUM(total_sales) FROM total_sales;",
+    "explanation": "This query calculates the sum of all values in the `total_sales` column of the `total_sales` table, giving the total sales across all entries.",
+    "result": [
+      {
+        "SUM(total_sales)": 1004904.5599999991
+      }
+    ],
+    "time": "2025-07-22 20:18:18",
+    "chart_data": null,
+    "chart_type": "bar"
+  }
+]

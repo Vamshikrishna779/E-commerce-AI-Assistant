@@ -1,0 +1,3 @@
+time,question,sql,explanation
+2025-07-22 20:18:05,what are total sales,SELECT SUM(total_sales) FROM total_sales;,"This query calculates the sum of all values in the 'total_sales' column of the 'total_sales' table, providing the total sales across all entries."
+2025-07-22 20:18:18,what are total sales,SELECT SUM(total_sales) FROM total_sales;,"This query calculates the sum of all values in the `total_sales` column of the `total_sales` table, giving the total sales across all entries."
