@@ -21,28 +21,14 @@ A FastAPI-based web application that converts natural language queries into SQL 
 - Chart.js
 - Ollama (Gemma or similar models)
 
-## Directory Structure
 
-```
-```
-.
-├── app/
-│   ├── main.py
-│   ├── query\_llm.py
-│   ├── sql\_utils.py
-│   ├── static/
-│   └── templates/
-├── exports/
-├── requirements.txt
-
-```
 ## Installation
 
 ### Step 1: Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/ecommerce-sql-assistant.git
-cd ecommerce-sql-assistant
+cd ecommerce-ai-assistant
 ````
 
 ### Step 2: Create a Virtual Environment
