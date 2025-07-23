@@ -1,6 +1,3 @@
-Here is the complete **`README.md` code** as plain text, ready to copy and place in your project root:
-
-```markdown
 # E-commerce AI Assistant
 
 A FastAPI-based web application that converts natural language queries into SQL for e-commerce data analytics. The generated SQL is executed on a SQLite database, and the results are visualized using charts.
@@ -27,7 +24,7 @@ A FastAPI-based web application that converts natural language queries into SQL 
 ## Directory Structure
 
 ```
-
+```
 .
 ├── app/
 │   ├── main.py
@@ -38,8 +35,7 @@ A FastAPI-based web application that converts natural language queries into SQL 
 ├── exports/
 ├── requirements.txt
 
-````
-
+```
 ## Installation
 
 ### Step 1: Clone the Repository
